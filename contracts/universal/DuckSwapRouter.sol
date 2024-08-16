@@ -1,34 +1,34 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.4;
 
-import "../core/interfaces/IiZiSwapCallback.sol";
-import "../core/interfaces/IiZiSwapFactory.sol";
-import "../core/interfaces/IiZiSwapPool.sol";
+import "../core/interfaces/IDuckSwapCallback.sol";
+import "../core/interfaces/IDuckSwapFactory.sol";
+import "../core/interfaces/IDuckSwapPool.sol";
 
 import "../libraries/Path.sol";
 
-import "./interfaces/IiZiSwapClassicPair.sol";
-import "./interfaces/IiZiSwapClassicFactory.sol";
+import "./interfaces/IDuckSwapClassicPair.sol";
+import "./interfaces/IDuckSwapClassicFactory.sol";
 
 import "./types.sol";
 
-abstract contract iZiSwapRouter is IiZiSwapCallback {
+abstract contract DuckSwapRouter is IDuckSwapCallback {
 
     using Path for bytes;
 
-    function iZiSwapPool(address tokenX, address tokenY, uint24 fee) public view returns(address) {
-        return IiZiSwapFactory(iZiSwapFactory).pool(tokenX, tokenY, fee);
+    function DuckSwapPool(address tokenX, address tokenY, uint24 fee) public view returns(address) {
+        return IDuckSwapFactory(duckSwapFactory).pool(tokenX, tokenY, fee);
     }
-    function iZiSwapVerify(address tokenX, address tokenY, uint24 fee) internal view {
-        require (msg.sender == iZiSwapPool(tokenX, tokenY, fee), "sp");
+    function DuckSwapVerify(address tokenX, address tokenY, uint24 fee) internal view {
+        require (msg.sender == DuckSwapPool(tokenX, tokenY, fee), "sp");
     }
 
-    address public iZiSwapFactory;
+    address public duckSwapFactory;
 
     /// @notice constructor to create this contract
-    /// @param _iZiSwapFactory address of iZiSwap factory
-    constructor(address _iZiSwapFactory) {
-        iZiSwapFactory = _iZiSwapFactory;
+    /// @param _duckSwapFactory address of DuckSwap factory
+    constructor(address _duckSwapFactory) {
+        duckSwapFactory = _duckSwapFactory;
     }
 
     /// @notice Callback for swapY2X and swapY2XDesireX, in order to pay tokenY from trader.
@@ -43,7 +43,7 @@ abstract contract iZiSwapRouter is IiZiSwapCallback {
         SwapCallbackData memory dt = abi.decode(data, (SwapCallbackData));
 
         (address token0, address token1, uint24 fee) = dt.path.decodeFirstPool();
-        iZiSwapVerify(token0, token1, fee);
+        DuckSwapVerify(token0, token1, fee);
         if (token0 < token1) {
             // token1 is y, amount of token1 is calculated
             // called from swapY2XDesireX(...)
@@ -71,7 +71,7 @@ abstract contract iZiSwapRouter is IiZiSwapCallback {
     ) external override {
         SwapCallbackData memory dt = abi.decode(data, (SwapCallbackData));
         (address token0, address token1, uint24 fee) = dt.path.decodeFirstPool();
-        iZiSwapVerify(token0, token1, fee);
+        DuckSwapVerify(token0, token1, fee);
         if (token0 < token1) {
             // token0 is x, amount of token0 is input param
             // called from swapX2Y(...)
@@ -89,46 +89,46 @@ abstract contract iZiSwapRouter is IiZiSwapCallback {
     }
 
 
-    function iZiSwapDesireSingleInternal(
+    function DuckSwapDesireSingleInternal(
         SwapSingleParams memory params,
         SwapCallbackData memory data
     ) internal returns (uint256 acquire) {
         
-        address poolAddr = iZiSwapPool(params.tokenOut, params.tokenIn, params.fee);
+        address poolAddr = DuckSwapPool(params.tokenOut, params.tokenIn, params.fee);
         if (params.tokenOut < params.tokenIn) {
             // tokenOut is tokenX, tokenIn is tokenY
             // we should call y2XDesireX
 
-            (acquire, ) = IiZiSwapPool(poolAddr).swapY2XDesireX(
+            (acquire, ) = IDuckSwapPool(poolAddr).swapY2XDesireX(
                 params.recipient, uint128(params.amount), 799999,
                 abi.encode(data)
             );
         } else {
             // tokenOut is tokenY
             // tokenIn is tokenX
-            (, acquire) = IiZiSwapPool(poolAddr).swapX2YDesireY(
+            (, acquire) = IDuckSwapPool(poolAddr).swapX2YDesireY(
                 params.recipient, uint128(params.amount), -799999,
                 abi.encode(data)
             );
         }
     }
 
-    function iZiSwapAmountSingleInternal(
+    function DuckSwapAmountSingleInternal(
         SwapSingleParams memory params,
         address payer
     ) internal returns (uint256 cost, uint256 acquire) {
         
-        address poolAddr = iZiSwapPool(params.tokenOut, params.tokenIn, params.fee);
+        address poolAddr = DuckSwapPool(params.tokenOut, params.tokenIn, params.fee);
         if (params.tokenIn < params.tokenOut) {
             // swapX2Y
-            (cost, acquire) = IiZiSwapPool(poolAddr).swapX2Y(
+            (cost, acquire) = IDuckSwapPool(poolAddr).swapX2Y(
                 params.recipient, uint128(params.amount), -799999,
                 abi.encode(SwapCallbackData({path: abi.encodePacked(params.tokenIn, params.fee, params.tokenOut), payer: payer}))
             );
         } else {
             // swapY2X
             uint256 costY;
-            (acquire, costY) = IiZiSwapPool(poolAddr).swapY2X(
+            (acquire, costY) = IDuckSwapPool(poolAddr).swapY2X(
                 params.recipient, uint128(params.amount), 799999,
                 abi.encode(SwapCallbackData({path: abi.encodePacked(params.tokenIn, params.fee, params.tokenOut), payer: payer}))
             );

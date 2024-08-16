@@ -13,16 +13,16 @@ const para = {
 
 async function main() {
 
-    const iZiSwapFactory = deployed[net].iZiSwapFactory;
+    const DuckSwapFactory = deployed[net].DuckSwapFactory;
     console.log("Paramters: ");
-    console.log('iZiSwapFactory: ', iZiSwapFactory)
+    console.log('DuckSwapFactory: ', DuckSwapFactory)
     for ( var i in para) { console.log("    " + i + ": " + para[i]); }
   
     console.log('=====================');
     // deploy swap
     const SwapRouter = await ethers.getContractFactory("UniversalSwapRouter");
     const router = await SwapRouter.deploy(
-        iZiSwapFactory,
+        DuckSwapFactory,
         para.classicFactory,
         para.weth,
         para.charger,

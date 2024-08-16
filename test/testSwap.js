@@ -3,7 +3,7 @@ const { ethers } = require("hardhat");
 
 const BigNumber = require('bignumber.js');
 
-const { getPoolParts, getIzumiswapFactory } = require("./funcs.js")
+const { getPoolParts, getduckswapFactory } = require("./funcs.js")
 async function getToken(dx, dy) {
 
     // deploy token
@@ -193,8 +193,8 @@ async function checkUserEarn(
 }
 
 async function getLimOrder(poolAddr, pt) {
-    const IzumiswapPool = await ethers.getContractFactory("iZiSwapPool");
-    pool = await IzumiswapPool.attach(poolAddr);
+    const duckswapPool = await ethers.getContractFactory("DuckSwapPool");
+    pool = await duckswapPool.attach(poolAddr);
     [sellingX, accEarnX, sellingY, accEarnY, earnX, earnY] = await pool.limitOrderData(pt);
     return [
         BigNumber(sellingX._hex),
@@ -206,8 +206,8 @@ async function getLimOrder(poolAddr, pt) {
     ]
 }
 async function getStatusVal(poolAddr, pt) {
-    const IzumiswapPool = await ethers.getContractFactory("iZiSwapPool");
-    pool = await IzumiswapPool.attach(poolAddr);
+    const duckswapPool = await ethers.getContractFactory("DuckSwapPool");
+    pool = await duckswapPool.attach(poolAddr);
     return await pool.statusVal(pt / 50);
 }
 async function checkStatusVal(eVal, poolAddr, pt) {
@@ -281,7 +281,7 @@ async function getLiquidity(nflm, tokenId) {
 describe("swap", function () {
     var signer, miner1, miner2, miner3, trader1, trader2, trader3, trader4;
     var poolPart, poolPartDesire;
-    var izumiswapFactory;
+    var duckswapFactory;
     var weth9;
     var nflm;
     var swap;
@@ -292,13 +292,13 @@ describe("swap", function () {
         [signer, miner1, miner2, miner3, trader1, trader2, trader3, trader4, receiver] = await ethers.getSigners();
         
         const {swapX2YModule, swapY2XModule, liquidityModule, limitOrderModule, flashModule} = await getPoolParts();
-        izumiswapFactory = await getIzumiswapFactory(receiver.address, swapX2YModule, swapY2XModule, liquidityModule, limitOrderModule, flashModule, signer);
-        console.log("get izumiswapFactory");
+        duckswapFactory = await getduckswapFactory(receiver.address, swapX2YModule, swapY2XModule, liquidityModule, limitOrderModule, flashModule, signer);
+        console.log("get duckswapFactory");
         weth9 = await getWETH9(signer);
         console.log("get weth9");
-        nflm = await getNFTLiquidityManager(izumiswapFactory, weth9);
+        nflm = await getNFTLiquidityManager(duckswapFactory, weth9);
         console.log("get nflm");
-        swap = await getSwap(izumiswapFactory, weth9);
+        swap = await getSwap(duckswapFactory, weth9);
 
         [tokenX, tokenY] = await getToken(18, 18);
         txAddr = tokenX.address.toLowerCase();

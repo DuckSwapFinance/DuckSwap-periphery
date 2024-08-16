@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.4;
 
-import "../core/interfaces/IiZiSwapCallback.sol";
-import "../core/interfaces/IiZiSwapFactory.sol";
-import "../core/interfaces/IiZiSwapPool.sol";
+import "../core/interfaces/IDuckSwapCallback.sol";
+import "../core/interfaces/IDuckSwapFactory.sol";
+import "../core/interfaces/IDuckSwapPool.sol";
 
 import "../libraries/Path.sol";
 
-import "./iZiClassicQuoter.sol";
-import "./iZiSwapQuoter.sol";
+import "./DuckClassicQuoter.sol";
+import "./DuckSwapQuoter.sol";
 
-contract UniversalQuoter is iZiClassicQuoter, iZiSwapQuoter {
+contract UniversalQuoter is DuckClassicQuoter, DuckSwapQuoter {
 
     using Path for bytes;
 
@@ -22,11 +22,11 @@ contract UniversalQuoter is iZiClassicQuoter, iZiSwapQuoter {
     }
 
     /// @notice Construct this contract.
-    /// @param _iZiSwapFactory address iZiSwap factory
-    /// @param _iZiClassicFactory address iZiSwap classic factory
-    constructor(address _iZiSwapFactory, address _iZiClassicFactory) 
-    iZiClassicQuoter(_iZiClassicFactory) 
-    iZiSwapQuoter(_iZiSwapFactory)
+    /// @param _duckSwapFactory address DuckSwap factory
+    /// @param _duckClassicFactory address DuckSwap classic factory
+    constructor(address _duckSwapFactory, address _duckClassicFactory) 
+    DuckClassicQuoter(_duckClassicFactory) 
+    DuckSwapQuoter(_duckSwapFactory)
     {}
 
 
@@ -77,10 +77,10 @@ contract UniversalQuoter is iZiClassicQuoter, iZiSwapQuoter {
             (address tokenIn, address tokenOut, uint24 fee) = params.path.decodeFirstPool();
             Price memory poolPrice;
             if (fee != 0) {
-                // iZiSwap
+                // DuckSwap
                 int24 finalPt;
-                (acquire, finalPt) = iZiSwapAmountSingleInternal(
-                    iZiSwapQuoteSingleParams({
+                (acquire, finalPt) = DuckSwapAmountSingleInternal(
+                    DuckSwapQuoteSingleParams({
                         tokenIn: tokenIn,
                         tokenOut: tokenOut,
                         fee: fee,
@@ -91,8 +91,8 @@ contract UniversalQuoter is iZiClassicQuoter, iZiSwapQuoter {
                 poolPrice.usePoint = true;
                 poolPrice.point = finalPt;
             } else {
-                // iZiSwap classic
-                require(iZiClassicFactory != address(0), "classic not supported!");
+                // DuckSwap classic
+                require(duckClassicFactory != address(0), "classic not supported!");
                 uint256 reserveIn;
                 uint256 reserveOut;
                 (acquire, reserveIn, reserveOut) = classicGetAmountOut(tokenIn, tokenOut, params.amount);
@@ -132,10 +132,10 @@ contract UniversalQuoter is iZiClassicQuoter, iZiSwapQuoter {
             (address tokenOut, address tokenIn, uint24 fee) = params.path.decodeFirstPool();
             Price memory poolPrice;
             if (fee != 0) {
-                // iZiSwap
+                // DuckSwap
                 int24 finalPt;
-                (cost, finalPt) = iZiSwapDesireSingleInternal(
-                    iZiSwapQuoteSingleParams({
+                (cost, finalPt) = DuckSwapDesireSingleInternal(
+                    DuckSwapQuoteSingleParams({
                         tokenIn: tokenIn,
                         tokenOut: tokenOut,
                         fee: fee,
@@ -146,8 +146,8 @@ contract UniversalQuoter is iZiClassicQuoter, iZiSwapQuoter {
                 poolPrice.usePoint = true;
                 poolPrice.point = finalPt;
             } else {
-                // iZiSwap classic
-                require(iZiClassicFactory != address(0), "classic not supported!");
+                // DuckSwap classic
+                require(duckClassicFactory != address(0), "classic not supported!");
                 uint256 reserveIn;
                 uint256 reserveOut;
                 (cost, reserveIn, reserveOut) = classicGetAmountIn(tokenIn, tokenOut, desire);
