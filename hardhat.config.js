@@ -38,11 +38,9 @@ module.exports = {
     hardhat: {
       allowUnlimitedContractSize: true,
     },
-    bsc: {
-      url: 'https://bsc-dataseed.binance.org/',
+    duckChainTest: {
+      url: 'https://testnet-rpc.duckchain.io',
       accounts: [sk],
-      // gas: 90000000,
-      gasPrice: 5000000000,
     },
   },
   etherscan: { 
