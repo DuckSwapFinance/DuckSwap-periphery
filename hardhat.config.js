@@ -42,6 +42,10 @@ module.exports = {
       url: 'https://testnet-rpc.duckchain.io',
       accounts: [sk],
     },
+    duckChainMainnet: {
+      url: 'https://rpc.duckchain.io',
+      accounts: [sk],
+    },
   },
   etherscan: { 
     apiKey: apiKey,
